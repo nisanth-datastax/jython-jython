@@ -27,13 +27,14 @@
 <!-- ================================================= -->
 <!--            Maven Bundle Buildfile                 -->
 <!-- ================================================= -->
-<project name="jython-maven" default="bundle-all" basedir="..">
+<project name="jython-maven" default="bundle-all" basedir=".." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
     <property file="${user.home}/ant.properties" />
     <property file="${basedir}/default.properties" />
 
     <!-- Artefacts for publication. -->
     <property name="pubs.dir" value="${basedir}/publications" />
+    <property name="project.version" value="2.7.1b10"/>
 
     <property name="m2.repo" value="${user.home}/.m2/repository" />
     <property name="m2.groupDir" value="org/python" />
@@ -64,6 +65,22 @@
 
     <target name="install" depends="prepare">
         <m2-install artifactId="jython" version="${jython.version}" />
+    </target>
+
+    <target name="deploy-standalone" depends="bundle-standalone">
+  	    <property name="artifactId" value="jython-standalone"/>
+  	    <property name="install.name" value="${artifactId}-${project.version}"/>
+  	    <property name="pomLocation" value="${build.dir}/${install.name}.pom"/>
+  	    <copy file="maven/pom-template.xml" tofile="${pomLocation}">
+  	        <filterset>
+  	            <filter token="PROJECT-VERSION" value="${project.version}"/>
+  	            <filter token="ARTIFACT-ID" value="${artifactId}"/>
+  	        </filterset>
+  	    </copy>
+  	    <artifact:pom id="maven.project" file="${pomLocation}"/>
+        <artifact:deploy file="${build.dir}/${install.name}.jar">
+    	    <pom refid="maven.project"/>
+        </artifact:deploy>
     </target>
 
     <target name="install-standalone" depends="prepare">
@@ -238,7 +255,7 @@
         <ant antfile="build.xml" target="all-jars" />
     </target>
 
-    <target name="prepare" depends="build-jython, validate-pom, version">
+    <target name="prepare" depends="build-jython, version">
         <local name="artifacts" />
         <property name="artifacts" value="${gradle.repo}/${m2.groupDir}/jython-slim/${jython.version}" />
         <condition property="gradle.published">
