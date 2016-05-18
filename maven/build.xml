@@ -67,7 +67,7 @@
         <m2-install artifactId="jython" version="${jython.version}" />
     </target>
 
-    <target name="deploy-standalone" depends="bundle-standalone">
+    <target name="deploy-standalone" depends="clean, clean-dist-dir, bundle-standalone">
   	    <property name="artifactId" value="jython-standalone"/>
   	    <property name="install.name" value="${artifactId}-${project.version}"/>
   	    <property name="pomLocation" value="${build.dir}/${install.name}.pom"/>
@@ -91,7 +91,7 @@
         <m2-bundle artifactId="jython" version="${jython.version}" />
     </target>
 
-    <target name="bundle-standalone" depends="prepare">
+    <target name="bundle-standalone" depends="build-jython-standalone">
         <m2-bundle artifactId="jython-standalone" version="${jython.version}" />
     </target>
 
@@ -161,8 +161,8 @@
             <copy file="@{fromDir}/@{artifactId}.jar" tofile="@{stageDir}/@{basename}.jar" />
 
             <!-- The source and Javadoc are already prepared (but add the version to the name). -->
-            <copy file="@{fromDir}/sources.jar" tofile="@{stageDir}/@{basename}-sources.jar" />
-            <copy file="@{fromDir}/javadoc.jar" tofile="@{stageDir}/@{basename}-javadoc.jar" />
+            <!--<copy file="@{fromDir}/sources.jar" tofile="@{stageDir}/@{basename}-sources.jar" />
+            <copy file="@{fromDir}/javadoc.jar" tofile="@{stageDir}/@{basename}-javadoc.jar" />-->
 
             <!-- Create the POM from the given template with placeholders replaced. -->
             <copy file="maven/pom-template.xml" tofile="@{stageDir}/@{basename}.pom">
@@ -255,6 +255,16 @@
         <ant antfile="build.xml" target="all-jars" />
     </target>
 
+    <target name="build-jython-standalone" if="do.build">
+        <ant antfile="build.xml" target="jar-standalone"/>
+    </target>
+
+    <target name="clean-dist-dir">
+        <delete includeemptydirs="true" failonerror="false">
+            <fileset dir="${dist.base}" includes="**/*" />
+        </delete>
+    </target>
+
     <target name="prepare" depends="build-jython, version">
         <local name="artifacts" />
         <property name="artifacts" value="${gradle.repo}/${m2.groupDir}/jython-slim/${jython.version}" />
@@ -262,5 +272,4 @@
             <available file="${artifacts}" type="dir" />
         </condition>
     </target>
-
 </project>
